@@ -224,7 +224,7 @@
 		};
 
 		/**
-		 * Tracking of mouse pointer - shared between instances. And binded just one for all instances.
+		 * Tracking of mouse pointer - shared between instances. And bound just one for all instances.
 		 */
 		mouseMoveTracker = function() {
 			if (!sharedProperties.mousemoveTracked) {
