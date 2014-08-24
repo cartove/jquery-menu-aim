@@ -80,7 +80,7 @@
     var menuAimModule = function ( menu, opts ) {
         var DELAY, MOUSE_LOCS_TRACKED,
         activeRow, mouseLocs, options, timeoutId, utils,
-        activate, activationdelay, clickrow, mouseenterrow, mouseleavemenu, mouseleaverow, mousemovedocument, possiblyactivate;
+        activate, activationDelay, clickRow, mouseenterRow, mouseleaveMenu, mouseleaveRow, mousemoveDocument, possiblyActivate;
 
         /**
          * Additional functions to help module to work.
