@@ -51,8 +51,8 @@ the relevant row's HTML element as the execution context ('this'):
         exitMenu: function() {},
 
         // Selector for identifying which elements in the menu are rows
-        // that can trigger the above events. Defaults to "li".
-        rowSelector: "li",
+        // that can trigger the above events. Defaults to "> li".
+        rowSelector: "> li",
 
         // You may have some menu rows that aren't submenus and therefore
         // shouldn't ever need to "activate." If so, filter submenu rows w/

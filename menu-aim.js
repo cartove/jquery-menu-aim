@@ -55,7 +55,7 @@
  *
  *          // Selector for identifying which elements in the menu are rows
  *          // that can trigger the above events. Defaults to "li".
- *          rowSelector: "li",
+ *          rowSelector: "> li",
  *
  *          // You may have some menu rows that aren't submenus and therefore
  *          // shouldn't ever need to "activate." If so, filter submenu rows w/
@@ -172,7 +172,7 @@
         timeoutId = null;
 
         options = utils.extend({
-            rowSelector: "li",
+            rowSelector: "> li",
             submenuSelector: "*",
             submenuDirection: "right",
             tolerance: 75,  // bigger = more forgivey when entering submenu
@@ -190,10 +190,12 @@
          * Hook up initial menu events
          */
         this.init = function () {
-            var rows;
+            var rows, rowSelector;
+
             menu.addEventListener( "mouseleave", mouseleaveMenu );
 
-            rows = menu.querySelectorAll( options.rowSelector );
+            rowSelector = ( menu.id ? "#" + menu.id  : menu.nodeName ) + " " + options.rowSelector
+            rows = menu.querySelectorAll( rowSelector );
 
             for (i = 0, j = rows.length; i < j; ++i) {
                 rows[i].addEventListener( "mouseenter", mouseenterRow );
