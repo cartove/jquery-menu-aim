@@ -174,14 +174,14 @@
 
 	menuAimModule = function() {
 		var DELAY, MOUSE_LOCS_TRACKED,
-		activeRow, lastDelayLoc, mouseLocks, menu, options, timeoutId,
+		activeRow, lastDelayLoc, mouseLocs, menu, options, timeoutId,
 		activate, activationDelay, clickRow, mouseenterRow, mouseleaveMenu, mouseleaveRow, mousemoveDocument,
 		possiblyActivate;
 
 		activeRow = null;
 		lastDelayLoc = null;
 		timeoutId = null;
-		mouseLocks = sharedProperties.mouseLocs;
+		mouseLocs = sharedProperties.mouseLocs;
 
 		options = {
 			rowSelector: "> li",
@@ -237,10 +237,10 @@
 		 * Keep track of the last few locations of the mouse.
 		 */
 		mousemoveDocument = function(e) {
-			mouseLocks.push({x: e.pageX, y: e.pageY});
+			mouseLocs.push({x: e.pageX, y: e.pageY});
 
-			if (mouseLocks.length > MOUSE_LOCS_TRACKED) {
-				mouseLocks.shift();
+			if (mouseLocs.length > MOUSE_LOCS_TRACKED) {
+				mouseLocs.shift();
 			}
 		};
 
@@ -359,8 +359,8 @@
 				x: offset.left + menu.offsetWidth,
 				y: lowerLeft.y
 			};
-			loc = sharedProperties.mouseLocs[sharedProperties.mouseLocs.length - 1];
-			prevLoc = sharedProperties.mouseLocs[0];
+			loc = mouseLocs[mouseLocs.length - 1];
+			prevLoc = mouseLocs[0];
 
 			if (!loc) {
 				return 0;
