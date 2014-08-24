@@ -206,7 +206,7 @@
             document.addEventListener( "mousemove", mousemoveDocument );
 
             return this;
-        }
+        };
 
         /**
          * Keep track of the last few locations of the mouse.
