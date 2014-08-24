@@ -169,6 +169,25 @@
 		// increase (somewhat counterintuitively).
 		slope: function ( a, b ) {
 			return (b.y - a.y) / (b.x - a.x);
+		},
+
+		/**
+		 * Function that helps reduce the number of actions taken on very often fired event (f.e. mousemove)
+		 * @param  {Function} fn    Original function to call
+		 * @param  {Number}   delay how long the delay between every two firing shout take
+		 */
+		debounce: function (fn, delay) {
+			var timer = null;
+
+			return function () {
+				var context = this,
+					args = arguments;
+
+				clearTimeout(timer);
+				timer = setTimeout(function () {
+					fn.apply(context, args);
+				}, delay);
+			};
 		}
 	};
 
@@ -228,7 +247,7 @@
 		 */
 		mouseMoveTracker = function() {
 			if (!sharedProperties.mousemoveTracked) {
-				document.addEventListener( "mousemove", mousemoveDocument );
+				document.addEventListener( "mousemove", utils.debounce( mousemoveDocument, 10 ) );
 				sharedProperties.mousemoveTracked = true;
 			}
 		};
