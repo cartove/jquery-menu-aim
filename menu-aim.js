@@ -306,7 +306,11 @@
         activationDelay = function() {
             var offset, upperLeft, upperRight, lowerLeft, lowerRight, loc, prevLoc, decreasingCorner, increasingCorner, decreasingSlope, increasingSlope, prevDecreasingSlope, prevIncreasingSlope;
 
-            if (!activeRow || utils.filter( [ activeRow ], options.submenuSelector ).length === 0 ) {
+            if (!activeRow || (
+                    options.submenuSelector !== "*" &&
+                    utils.filter( [ activeRow ], options.submenuSelector ).length === 0
+                )
+            ) {
                 // If there is no other submenu row already active, then
                 // go ahead and activate immediately.
                 return 0;
