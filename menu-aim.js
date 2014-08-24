@@ -79,7 +79,7 @@
 (function() {
     var menuAimModule = function ( menu, opts ) {
         var DELAY, MOUSE_LOCS_TRACKED,
-        activeRow, mouseLocs, options, timeoutId, utils,
+        activeRow, lastDelayLoc, mouseLocs, options, timeoutId, utils,
         activate, activationDelay, clickRow, mouseenterRow, mouseleaveMenu, mouseleaveRow, mousemoveDocument, possiblyActivate;
 
         /**
