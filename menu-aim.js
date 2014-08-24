@@ -77,7 +77,7 @@
  * Works on IE9+ (because of addEventListener...)
 */
 (function() {
-    menuAimModule = function(menu, opts) {
+    var menuAimModule = function ( menu, opts ) {
         var DELAY, MOUSE_LOCS_TRACKED,
         activeRow, mouseLocs, options, timeoutId, utils,
         activate, activationdelay, clickrow, mouseenterrow, mouseleavemenu, mouseleaverow, mousemovedocument, possiblyactivate;
@@ -402,7 +402,7 @@
         var menuAim;
 
         menuAim = new menuAimModule( menu, opts );
-        return menuAim.init ();
+        return menuAim.init();
     };
 })();
 
