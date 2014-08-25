@@ -175,8 +175,8 @@
 	menuAimModule = function() {
 		var DELAY, MOUSE_LOCS_TRACKED,
 		activeRow, lastDelayLoc, mouseLocs, menu, options, timeoutId,
-		activate, activationDelay, clickRow, mouseenterRow, mouseleaveMenu, mouseleaveRow, mousemoveDocument,
-		possiblyActivate;
+		activate, activationDelay, clickRow, mouseenterRow, mouseenterMenu, mouseleaveMenu, mouseleaveRow, mousemoveDocument,
+		possiblyActivate, mouseMoveTrackerOff, mouseMoveTrackerOn;
 
 		activeRow = null;
 		lastDelayLoc = null;
@@ -202,12 +202,13 @@
 		 * Hook up initial menu events
 		 */
 		this.init = function( menuToHandle, opts ) {
-			var rows, rowSelector;
+			var i, j, rows, rowSelector;
 
 			menu = menuToHandle;
 			options = utils.extend(options, opts);
 
 			menu.addEventListener( "mouseleave", mouseleaveMenu );
+			menu.addEventListener( "mouseenter", mouseenterMenu );
 
 			rowSelector = ( menu.id ? "#" + menu.id  : menu.nodeName ) + " " + options.rowSelector
 			rows = menu.querySelectorAll( rowSelector );
@@ -218,18 +219,26 @@
 				rows[i].addEventListener( "click", clickRow );
 			}
 
-			mouseMoveTracker();
-
 			return this;
 		};
 
 		/**
 		 * Tracking of mouse pointer - shared between instances. And bound just one for all instances.
 		 */
-		mouseMoveTracker = function() {
+		mouseMoveTrackerOn = function() {
 			if (!sharedProperties.mousemoveTracked) {
 				document.addEventListener( "mousemove", mousemoveDocument );
 				sharedProperties.mousemoveTracked = true;
+			}
+		};
+
+		/**
+		 * Turn off tracking of mouse pointer.
+		 */
+		mouseMoveTrackerOff = function() {
+			if (sharedProperties.mousemoveTracked) {
+				document.removeEventListener( "mousemove", mousemoveDocument );
+				sharedProperties.mousemoveTracked = false;
 			}
 		};
 
@@ -245,7 +254,8 @@
 		};
 
 		/**
-		 * Cancel possible row activations when leaving the menu entirely
+		 * Cancel possible row activations when leaving the menu entirely.
+		 * Also cancel mouse pointer position tracking.
 		 */
 		mouseleaveMenu = function() {
 			if (timeoutId) {
@@ -258,6 +268,15 @@
 				options.deactivate(activeRow);
 				activeRow = null;
 			}
+
+			mouseMoveTrackerOff();
+		};
+
+		/**
+		 * Turn on tracking of mouse pointer position.
+		 */
+		mouseenterMenu = function() {
+			mouseMoveTrackerOn();
 		};
 
 		/**
