@@ -224,9 +224,10 @@
 
 		/**
 		 * Tracking of mouse pointer - shared between instances. And bound just one for all instances.
+		 * Only for devices without touchscreen.
 		 */
 		mouseMoveTrackerOn = function() {
-			if (!sharedProperties.mousemoveTracked) {
+			if (!sharedProperties.mousemoveTracked && !window.touchstart) {
 				document.addEventListener( "mousemove", mousemoveDocument );
 				sharedProperties.mousemoveTracked = true;
 			}
