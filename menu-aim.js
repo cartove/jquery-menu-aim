@@ -44,7 +44,7 @@
  *
  *          // Set DOM node active, by that menu knows which elem should be
  *          // deactivated before first call to activate .
- *          // This is param is useful when your menu has active row at default
+ *          // This param is useful when your menu has active row at default
  *          activeRow: null,
  *
  *          // Function to call when a row is deactivated.
