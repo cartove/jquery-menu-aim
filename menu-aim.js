@@ -59,7 +59,8 @@
  *          exit: function() {},
  *
  *          // Selector for identifying which elements in the menu are rows
- *          // that can trigger the above events. Defaults to every first level child elements.
+ *          // that can trigger the above events. If not defined, defaults to all first level child elements.
+ *          // For Example:
  *          rowSelector: "#dropdown-menu-id > li",
  *
  *          // You may have some menu rows that aren't submenus and therefore
