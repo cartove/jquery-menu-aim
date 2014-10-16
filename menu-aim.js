@@ -202,7 +202,7 @@
 		 * Hook up initial menu events
 		 */
 		this.init = function( menuToHandle, opts ) {
-			var i, j, rows, rowSelector;
+			var i, j, rows;
 
 			menu = menuToHandle;
 			options = utils.extend(options, opts);
