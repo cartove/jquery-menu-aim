@@ -59,8 +59,9 @@
  *          exit: function() {},
  *
  *          // Selector for identifying which elements in the menu are rows
- *          // that can trigger the above events. Defaults to "li".
- *          rowSelector: "> li",
+ *          // that can trigger the above events. If not defined, defaults to all first level child elements.
+ *          // For Example:
+ *          rowSelector: "#dropdown-menu-id > li",
  *
  *          // You may have some menu rows that aren't submenus and therefore
  *          // shouldn't ever need to "activate." If so, filter submenu rows w/
@@ -183,7 +184,7 @@
 
 		options = {
 			activeRow: null,
-			rowSelector: "> li",
+			rowSelector: null,
 			submenuSelector: "*",
 			submenuDirection: "right",
 			tolerance: 75,  // bigger = more forgivey when entering submenu
@@ -201,7 +202,7 @@
 		 * Hook up initial menu events
 		 */
 		this.init = function( menuToHandle, opts ) {
-			var i, j, rows, rowSelector;
+			var i, j, rows;
 
 			menu = menuToHandle;
 			options = utils.extend(options, opts);
@@ -210,8 +211,12 @@
 			menu.addEventListener( "mouseleave", mouseleaveMenu );
 			menu.addEventListener( "mouseenter", mouseenterMenu );
 
-			rowSelector = ( menu.id ? "#" + menu.id  : menu.nodeName ) + " " + options.rowSelector
-			rows = menu.querySelectorAll( rowSelector );
+			if (!options.rowSelector) {
+				rows = menu.childNodes;
+			}
+			else {
+				rows = menu.querySelectorAll( options.rowSelector );
+			}
 
 			for (i = 0, j = rows.length; i < j; ++i) {
 				rows[i].addEventListener( "mouseenter", mouseenterRow );
