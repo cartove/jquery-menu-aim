@@ -74,386 +74,385 @@
  *      });
  *
  *
- * A few performance improvements and release of jQuery dependency by the Wikia
- * https://github.com/Wikia/js-menu-aim
- * git@github.com:Wikia/js-menu-aim.git
+ * A few performance improvements and IE Support which is not present in Wikia version
+ * https://github.com/cartove/jquery-menu-aim
+ * git@github.com:cartove/jquery-menu-aim.git
  *
  * forked from: https://github.com/kamens/jQuery-menu-aim
  *
  * Works on IE9+ (because of addEventListener...)
-*/
-(function() {
-	var menuAimModule, sharedProperties, utils;
+ */
+(function () {
+    var menuAimModule, sharedProperties, utils;
 
-	/**
-	 * Properties that will be shared through the instances of the class - just like in singleton.
-	 * @type {Object}
-	 */
-	sharedProperties = {
-		mouseLocs: [],
-		mousemoveTracked: false
-	};
+    /**
+     * Properties that will be shared through the instances of the class - just like in singleton.
+     * @type {Object}
+     */
+    sharedProperties = {
+        mouseLocs: [],
+        mousemoveTracked: false
+    };
 
-	/**
-	 * Additional functions to help module to work.
-	 */
-	utils = {
-		/**
-		* Returns only the elements filtered by the filterSelector
-		 * @param  {Array} elements - DOM elements to be filtered
-		 * @param  {String} filterSelector - selector to filter DOM elements
-		 * @return {Array} filtered DOM elements
-		 */
-		filter: function (elements, filterSelector) {
-			var elementsCnt, elementNo, nodeList, nodeListCnt, nodeNo, result;
+    /**
+     * Additional functions to help module to work.
+     */
+    utils = {
+        /**
+         * Returns only the elements filtered by the filterSelector
+         * @param  {Array} elements - DOM elements to be filtered
+         * @param  {String} filterSelector - selector to filter DOM elements
+         * @return {Array} filtered DOM elements
+         */
+        filter: function (elements, filterSelector) {
+            var elementsCnt, elementNo, nodeList, nodeListCnt, nodeNo, result;
 
-			result = [];
-			elementsCnt = elements.length;
+            result = [];
+            elementsCnt = elements.length;
 
-			for (elementNo = 0; elementNo < elementsCnt; ++elementNo) {
-				if (!elements[elementNo] || !elements[elementNo].parentNode) {
-					continue;
-				}
+            for (elementNo = 0; elementNo < elementsCnt; ++elementNo) {
+                if (!elements[elementNo] || !elements[elementNo].parentNode) {
+                    continue;
+                }
 
-				nodeList = elements[elementNo].parentNode.querySelectorAll( filterSelector );
-				nodeListCnt = nodeList.length;
+                nodeList = elements[elementNo].parentNode.querySelectorAll(filterSelector);
+                nodeListCnt = nodeList.length;
 
-				for (nodeNo = 0; nodeNo < nodeListCnt; ++nodeNo) {
-					if (nodeList[nodeNo] !== elements[elementNo]) {
-						continue;
-					}
+                for (nodeNo = 0; nodeNo < nodeListCnt; ++nodeNo) {
+                    if (nodeList[nodeNo] !== elements[elementNo]) {
+                        continue;
+                    }
 
-					result.push (elements[elementNo]);
-				}
-			}
+                    result.push(elements[elementNo]);
+                }
+            }
 
-			return result;
-		},
+            return result;
+        },
 
-		/**
-		 * Returns first object extended by the properties of the second
-		 * @param  {Object} dst Object to be extended
-		 * @param  {Object} src Object with properties that should be added to the previous
-		 * @return {Object} Extended object
-		 */
-		extend: function (dst, src) {
-			var p;
+        /**
+         * Returns first object extended by the properties of the second
+         * @param  {Object} dst Object to be extended
+         * @param  {Object} src Object with properties that should be added to the previous
+         * @return {Object} Extended object
+         */
+        extend: function (dst, src) {
+            var p;
 
-			for (p in src) {
-				if (src.hasOwnProperty (p)) {
-					dst[p] = src[p];
-				}
-			}
+            for (p in src) {
+                if (src.hasOwnProperty(p)) {
+                    dst[p] = src[p];
+                }
+            }
 
-			return dst;
-		},
+            return dst;
+        },
 
-		// Detect if the user is moving towards the currently activated
-		// submenu.
-		//
-		// If the mouse is heading relatively clearly towards
-		// the submenu's content, we should wait and give the user more
-		// time before activating a new row. If the mouse is heading
-		// elsewhere, we can immediately activate a new row.
-		//
-		// We detect this by calculating the slope formed between the
-		// current mouse location and the upper/lower right points of
-		// the menu. We do the same for the previous mouse location.
-		// If the current mouse location's slopes are
-		// increasing/decreasing appropriately compared to the
-		// previous's, we know the user is moving toward the submenu.
-		//
-		// Note that since the y-axis increases as the cursor moves
-		// down the screen, we are looking for the slope between the
-		// cursor and the upper right corner to decrease over time, not
-		// increase (somewhat counterintuitively).
-		slope: function ( a, b ) {
-			return (b.y - a.y) / (b.x - a.x);
-		}
-	};
+        // Detect if the user is moving towards the currently activated
+        // submenu.
+        //
+        // If the mouse is heading relatively clearly towards
+        // the submenu's content, we should wait and give the user more
+        // time before activating a new row. If the mouse is heading
+        // elsewhere, we can immediately activate a new row.
+        //
+        // We detect this by calculating the slope formed between the
+        // current mouse location and the upper/lower right points of
+        // the menu. We do the same for the previous mouse location.
+        // If the current mouse location's slopes are
+        // increasing/decreasing appropriately compared to the
+        // previous's, we know the user is moving toward the submenu.
+        //
+        // Note that since the y-axis increases as the cursor moves
+        // down the screen, we are looking for the slope between the
+        // cursor and the upper right corner to decrease over time, not
+        // increase (somewhat counterintuitively).
+        slope: function (a, b) {
+            return (b.y - a.y) / (b.x - a.x);
+        }
+    };
 
-	menuAimModule = function() {
-		var DELAY, MOUSE_LOCS_TRACKED,
-		activeRow, lastDelayLoc, mouseLocs, menu, options, timeoutId,
-		activate, activationDelay, clickRow, mouseenterRow, mouseenterMenu, mouseleaveMenu, mouseleaveRow, mousemoveDocument,
-		possiblyActivate, mouseMoveTrackerOff, mouseMoveTrackerOn;
+    menuAimModule = function () {
+        var DELAY, MOUSE_LOCS_TRACKED,
+                activeRow, lastDelayLoc, mouseLocs, menu, options, timeoutId,
+                activate, activationDelay, clickRow, mouseenterRow, mouseenterMenu, mouseleaveMenu, mouseleaveRow, mousemoveDocument,
+                possiblyActivate, mouseMoveTrackerOff, mouseMoveTrackerOn;
 
-		lastDelayLoc = null;
-		timeoutId = null;
-		mouseLocs = sharedProperties.mouseLocs;
+        lastDelayLoc = null;
+        timeoutId = null;
+        mouseLocs = sharedProperties.mouseLocs;
 
-		options = {
-			activeRow: null,
-			rowSelector: null,
-			submenuSelector: "*",
-			submenuDirection: "right",
-			tolerance: 75,  // bigger = more forgivey when entering submenu
-			enter: Function.prototype,
-			exit: Function.prototype,
-			activate: Function.prototype,
-			deactivate: Function.prototype,
-			exitMenu: Function.prototype
-		};
+        options = {
+            activeRow: null,
+            rowSelector: null,
+            submenuSelector: "*",
+            submenuDirection: "right",
+            tolerance: 75,  // bigger = more forgivey when entering submenu
+            enter: Function.prototype,
+            exit: Function.prototype,
+            activate: Function.prototype,
+            deactivate: Function.prototype,
+            exitMenu: Function.prototype
+        };
 
-		MOUSE_LOCS_TRACKED = 3;  // number of past mouse locations to track
-		DELAY = 300;  // ms delay when user appears to be entering submenu
+        MOUSE_LOCS_TRACKED = 3;  // number of past mouse locations to track
+        DELAY = 300;  // ms delay when user appears to be entering submenu
 
-		/**
-		 * Hook up initial menu events
-		 */
-		this.init = function( menuToHandle, opts ) {
-			var i, j, rows;
+        /**
+         * Hook up initial menu events
+         */
+        this.init = function (menuToHandle, opts) {
+            var i, j, rows;
 
-			menu = menuToHandle;
-			options = utils.extend(options, opts);
-			activeRow = options.activeRow;
+            menu = menuToHandle;
+            options = utils.extend(options, opts);
+            activeRow = options.activeRow;
+            $(menu).bind("mouseleave", mouseleaveMenu);
+            $(menu).bind("mouseenter", mouseenterMenu);
 
-			menu.addEventListener( "mouseleave", mouseleaveMenu );
-			menu.addEventListener( "mouseenter", mouseenterMenu );
+            if (!options.rowSelector) {
+                rows = menu.childNodes;
+            }
+            else {
+                rows = menu.querySelectorAll(options.rowSelector);
+            }
 
-			if (!options.rowSelector) {
-				rows = menu.childNodes;
-			}
-			else {
-				rows = menu.querySelectorAll( options.rowSelector );
-			}
+            for (i = 0, j = rows.length; i < j; ++i) {
+                $(rows[i]).bind("mouseenter", mouseenterRow);
+                $(rows[i]).bind("mouseleave", mouseleaveRow);
+                $(rows[i]).bind("click", clickRow);
+            }
 
-			for (i = 0, j = rows.length; i < j; ++i) {
-				rows[i].addEventListener( "mouseenter", mouseenterRow );
-				rows[i].addEventListener( "mouseleave", mouseleaveRow );
-				rows[i].addEventListener( "click", clickRow );
-			}
+            return this;
+        };
 
-			return this;
-		};
+        /**
+         * Tracking of mouse pointer - shared between instances. And bound just one for all instances.
+         * Only for devices without touchscreen.
+         */
+        mouseMoveTrackerOn = function () {
+            if (!sharedProperties.mousemoveTracked && !window.touchstart) {
+                $(document).bind("mousemove", mousemoveDocument);
+                sharedProperties.mousemoveTracked = true;
+            }
+        };
 
-		/**
-		 * Tracking of mouse pointer - shared between instances. And bound just one for all instances.
-		 * Only for devices without touchscreen.
-		 */
-		mouseMoveTrackerOn = function() {
-			if (!sharedProperties.mousemoveTracked && !window.touchstart) {
-				document.addEventListener( "mousemove", mousemoveDocument );
-				sharedProperties.mousemoveTracked = true;
-			}
-		};
+        /**
+         * Turn off tracking of mouse pointer.
+         */
+        mouseMoveTrackerOff = function () {
+            if (sharedProperties.mousemoveTracked) {
+                $(document).unbind("mousemove", mousemoveDocument);
+                sharedProperties.mousemoveTracked = false;
+            }
+        };
 
-		/**
-		 * Turn off tracking of mouse pointer.
-		 */
-		mouseMoveTrackerOff = function() {
-			if (sharedProperties.mousemoveTracked) {
-				document.removeEventListener( "mousemove", mousemoveDocument );
-				sharedProperties.mousemoveTracked = false;
-			}
-		};
+        /**
+         * Keep track of the last few locations of the mouse.
+         */
+        mousemoveDocument = function (e) {
+            mouseLocs.push({x: e.pageX, y: e.pageY});
 
-		/**
-		 * Keep track of the last few locations of the mouse.
-		 */
-		mousemoveDocument = function(e) {
-			mouseLocs.push({x: e.pageX, y: e.pageY});
+            if (mouseLocs.length > MOUSE_LOCS_TRACKED) {
+                mouseLocs.shift();
+            }
+        };
 
-			if (mouseLocs.length > MOUSE_LOCS_TRACKED) {
-				mouseLocs.shift();
-			}
-		};
+        /**
+         * Cancel possible row activations when leaving the menu entirely.
+         * Also cancel mouse pointer position tracking.
+         */
+        mouseleaveMenu = function () {
+            if (timeoutId) {
+                clearTimeout(timeoutId);
+            }
 
-		/**
-		 * Cancel possible row activations when leaving the menu entirely.
-		 * Also cancel mouse pointer position tracking.
-		 */
-		mouseleaveMenu = function() {
-			if (timeoutId) {
-				clearTimeout(timeoutId);
-			}
+            // If exitMenu is supplied and returns true, deactivate the
+            // currently active row on menu exit.
+            if (activeRow && options.exitMenu(this)) {
+                options.deactivate(activeRow);
+                activeRow = null;
+            }
 
-			// If exitMenu is supplied and returns true, deactivate the
-			// currently active row on menu exit.
-			if (activeRow && options.exitMenu(this)) {
-				options.deactivate(activeRow);
-				activeRow = null;
-			}
+            mouseMoveTrackerOff();
+        };
 
-			mouseMoveTrackerOff();
-		};
+        /**
+         * Turn on tracking of mouse pointer position.
+         */
+        mouseenterMenu = function () {
+            mouseMoveTrackerOn();
+        };
 
-		/**
-		 * Turn on tracking of mouse pointer position.
-		 */
-		mouseenterMenu = function() {
-			mouseMoveTrackerOn();
-		};
+        /**
+         * Trigger a possible row activation whenever entering a new row.
+         */
+        mouseenterRow = function () {
+            if (timeoutId) {
+                // Cancel any previous activation delays
+                clearTimeout(timeoutId);
+            }
 
-		/**
-		 * Trigger a possible row activation whenever entering a new row.
-		 */
-		mouseenterRow = function() {
-			if (timeoutId) {
-				// Cancel any previous activation delays
-				clearTimeout(timeoutId);
-			}
+            options.enter(this);
+            possiblyActivate(this);
+        };
 
-			options.enter(this);
-			possiblyActivate(this);
-		};
+        /**
+         * Trigger a possible row deactivation whenever leaving a row.
+         */
+        mouseleaveRow = function () {
+            options.exit(this);
+        };
 
-		/**
-		 * Trigger a possible row deactivation whenever leaving a row.
-		 */
-		mouseleaveRow = function() {
-			options.exit(this);
-		};
+        /*
+         * Immediately activate a row if the user clicks on it.
+         */
+        clickRow = function () {
+            activate(this);
+        };
 
-		/*
-		 * Immediately activate a row if the user clicks on it.
-		 */
-		clickRow = function() {
-			activate(this);
-		};
+        /**
+         * Activate a menu row.
+         */
+        activate = function (row) {
+            if (row == activeRow) {
+                return;
+            }
 
-		/**
-		 * Activate a menu row.
-		 */
-		activate = function(row) {
-			if (row == activeRow) {
-				return;
-			}
+            if (activeRow) {
+                options.deactivate(activeRow);
+            }
 
-			if (activeRow) {
-				options.deactivate(activeRow);
-			}
+            options.activate(row);
+            activeRow = row;
+        };
 
-			options.activate(row);
-			activeRow = row;
-		};
+        /**
+         * Possibly activate a menu row. If mouse movement indicates that we
+         * shouldn't activate yet because user may be trying to enter
+         * a submenu's content, then delay and check again later.
+         */
+        possiblyActivate = function (row) {
+            var delay = activationDelay();
 
-		/**
-		 * Possibly activate a menu row. If mouse movement indicates that we
-		 * shouldn't activate yet because user may be trying to enter
-		 * a submenu's content, then delay and check again later.
-		 */
-		possiblyActivate = function(row) {
-			var delay = activationDelay();
+            if (delay) {
+                timeoutId = setTimeout(function () {
+                    possiblyActivate(row);
+                }, delay);
+            } else {
+                activate(row);
+            }
+        };
 
-			if (delay) {
-				timeoutId = setTimeout(function() {
-					possiblyActivate(row);
-				}, delay);
-			} else {
-				activate(row);
-			}
-		};
+        /**
+         * Return the amount of time that should be used as a delay before the
+         * currently hovered row is activated.
+         *
+         * Returns 0 if the activation should happen immediately. Otherwise,
+         * returns the number of milliseconds that should be delayed before
+         * checking again to see if the row should be activated.
+         */
+        activationDelay = function () {
+            var offset, upperLeft, upperRight, lowerLeft, lowerRight, loc, prevLoc, decreasingCorner, increasingCorner,
+                    decreasingSlope, increasingSlope, prevDecreasingSlope, prevIncreasingSlope;
 
-		/**
-		 * Return the amount of time that should be used as a delay before the
-		 * currently hovered row is activated.
-		 *
-		 * Returns 0 if the activation should happen immediately. Otherwise,
-		 * returns the number of milliseconds that should be delayed before
-		 * checking again to see if the row should be activated.
-		 */
-		activationDelay = function() {
-			var offset, upperLeft, upperRight, lowerLeft, lowerRight, loc, prevLoc, decreasingCorner, increasingCorner,
-				decreasingSlope, increasingSlope, prevDecreasingSlope, prevIncreasingSlope;
+            if (!activeRow || (
+                    options.submenuSelector !== "*" &&
+                    utils.filter([ activeRow ], options.submenuSelector).length === 0
+                    )
+                    ) {
+                // If there is no other submenu row already active, then
+                // go ahead and activate immediately.
+                return 0;
+            }
+            offset = menu.getBoundingClientRect();
 
-			if (!activeRow || (
-					options.submenuSelector !== "*" &&
-					utils.filter( [ activeRow ], options.submenuSelector ).length === 0
-				)
-			) {
-				// If there is no other submenu row already active, then
-				// go ahead and activate immediately.
-				return 0;
-			}
-			offset = menu.getBoundingClientRect();
+            upperLeft = {
+                x: offset.left,
+                y: offset.top + window.pageYOffset - options.tolerance
+            };
+            upperRight = {
+                x: offset.left + menu.offsetWidth,
+                y: upperLeft.y
+            };
+            lowerLeft = {
+                x: offset.left,
+                y: offset.top + window.pageYOffset + menu.offsetHeight + options.tolerance
+            };
+            lowerRight = {
+                x: offset.left + menu.offsetWidth,
+                y: lowerLeft.y
+            };
+            loc = mouseLocs[mouseLocs.length - 1];
+            prevLoc = mouseLocs[0];
 
-			upperLeft = {
-				x: offset.left,
-				y: offset.top + window.pageYOffset - options.tolerance
-			};
-			upperRight = {
-				x: offset.left + menu.offsetWidth,
-				y: upperLeft.y
-			};
-			lowerLeft = {
-				x: offset.left,
-				y: offset.top + window.pageYOffset + menu.offsetHeight + options.tolerance
-			};
-			lowerRight = {
-				x: offset.left + menu.offsetWidth,
-				y: lowerLeft.y
-			};
-			loc = mouseLocs[mouseLocs.length - 1];
-			prevLoc = mouseLocs[0];
+            if (!loc) {
+                return 0;
+            }
 
-			if (!loc) {
-				return 0;
-			}
+            if (!prevLoc) {
+                prevLoc = loc;
+            }
 
-			if (!prevLoc) {
-				prevLoc = loc;
-			}
+            if (prevLoc.x < offset.left || prevLoc.x > lowerRight.x ||
+                    prevLoc.y < offset.top || prevLoc.y > lowerRight.y) {
+                // If the previous mouse location was outside of the entire
+                // menu's bounds, immediately activate.
+                return 0;
+            }
 
-			if (prevLoc.x < offset.left || prevLoc.x > lowerRight.x ||
-				prevLoc.y < offset.top || prevLoc.y > lowerRight.y) {
-				// If the previous mouse location was outside of the entire
-				// menu's bounds, immediately activate.
-				return 0;
-			}
+            if (lastDelayLoc &&
+                    loc.x == lastDelayLoc.x && loc.y == lastDelayLoc.y) {
+                // If the mouse hasn't moved since the last time we checked
+                // for activation status, immediately activate.
+                return 0;
+            }
 
-			if (lastDelayLoc &&
-					loc.x == lastDelayLoc.x && loc.y == lastDelayLoc.y) {
-				// If the mouse hasn't moved since the last time we checked
-				// for activation status, immediately activate.
-				return 0;
-			}
+            decreasingCorner = upperRight,
+                    increasingCorner = lowerRight;
 
-			decreasingCorner = upperRight,
-			increasingCorner = lowerRight;
+            // Our expectations for decreasing or increasing slope values
+            // depends on which direction the submenu opens relative to the
+            // main menu. By default, if the menu opens on the right, we
+            // expect the slope between the cursor and the upper right
+            // corner to decrease over time, as explained above. If the
+            // submenu opens in a different direction, we change our slope
+            // expectations.
+            if (options.submenuDirection == "left") {
+                decreasingCorner = lowerLeft;
+                increasingCorner = upperLeft;
+            } else if (options.submenuDirection == "below") {
+                decreasingCorner = lowerRight;
+                increasingCorner = lowerLeft;
+            } else if (options.submenuDirection == "above") {
+                decreasingCorner = upperLeft;
+                increasingCorner = upperRight;
+            }
 
-			// Our expectations for decreasing or increasing slope values
-			// depends on which direction the submenu opens relative to the
-			// main menu. By default, if the menu opens on the right, we
-			// expect the slope between the cursor and the upper right
-			// corner to decrease over time, as explained above. If the
-			// submenu opens in a different direction, we change our slope
-			// expectations.
-			if (options.submenuDirection == "left") {
-				decreasingCorner = lowerLeft;
-				increasingCorner = upperLeft;
-			} else if (options.submenuDirection == "below") {
-				decreasingCorner = lowerRight;
-				increasingCorner = lowerLeft;
-			} else if (options.submenuDirection == "above") {
-				decreasingCorner = upperLeft;
-				increasingCorner = upperRight;
-			}
+            decreasingSlope = utils.slope(loc, decreasingCorner);
+            increasingSlope = utils.slope(loc, increasingCorner);
+            prevDecreasingSlope = utils.slope(prevLoc, decreasingCorner);
+            prevIncreasingSlope = utils.slope(prevLoc, increasingCorner);
 
-			decreasingSlope = utils.slope(loc, decreasingCorner);
-			increasingSlope = utils.slope(loc, increasingCorner);
-			prevDecreasingSlope = utils.slope(prevLoc, decreasingCorner);
-			prevIncreasingSlope = utils.slope(prevLoc, increasingCorner);
+            if (decreasingSlope < prevDecreasingSlope &&
+                    increasingSlope > prevIncreasingSlope) {
+                // Mouse is moving from previous location towards the
+                // currently activated submenu. Delay before activating a
+                // new menu row, because user may be moving into submenu.
+                lastDelayLoc = loc;
+                return DELAY;
+            }
 
-			if (decreasingSlope < prevDecreasingSlope &&
-					increasingSlope > prevIncreasingSlope) {
-				// Mouse is moving from previous location towards the
-				// currently activated submenu. Delay before activating a
-				// new menu row, because user may be moving into submenu.
-				lastDelayLoc = loc;
-				return DELAY;
-			}
+            lastDelayLoc = null;
+            return 0;
+        };
+    };
 
-			lastDelayLoc = null;
-			return 0;
-		};
-	};
+    window.menuAim = function (menuToHandle, opts) {
+        var menuAim;
 
-	window.menuAim = function( menuToHandle, opts ) {
-		var menuAim;
-
-		menuAim = new menuAimModule();
-		return menuAim.init( menuToHandle, opts );
-	};
+        menuAim = new menuAimModule();
+        return menuAim.init(menuToHandle, opts);
+    };
 })();
 
